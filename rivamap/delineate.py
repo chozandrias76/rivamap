@@ -11,7 +11,7 @@ import cv2
 import numpy as np
 from scipy.ndimage import sum as ndsum
 from scipy.ndimage import label as ndlabel
-from rivamap import preprocess
+from . import preprocess
 
 def extractCenterlines(orient, psi):
     """ Uses the previously computed singularity index response (psi)
