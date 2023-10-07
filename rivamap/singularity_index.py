@@ -93,8 +93,6 @@ def process_scale(
     psi,
     idx_curr,
 ):
-    print(f"{str(s)}: Processing scale")
-
     # Downscale the image to the current scale. We use a pyramid instead of
     # increasing the sigma and size of the kernels for efficiency
     if s > 0:
@@ -115,20 +113,10 @@ def process_scale(
     I = I1 - mu
 
     # Apply the second order derivative filters
-    print(f"{str(s)}: Applying second order filters")
-    # Assuming 'I' and 'filters.G20' are NumPy arrays
-    if I.shape == filters.G20.shape and I.dtype == filters.G20.dtype:
-        print(
-            "Input 'I' and 'filters.G20' are compatible in terms of shape and data type."
-        )
-    else:
-        print(
-            "Input 'I' and 'filters.G20' are not compatible in terms of shape or data type."
-        )
+
     J20 = fftconvolve(I, filters.G20, mode="same")
     J260 = fftconvolve(I, filters.G260, mode="same")
     J2120 = fftconvolve(I, filters.G2120, mode="same")
-    print(f"{str(s)}: Applied second order filters")
 
     # Compute the dominant local orientation
     Nr = np.sqrt(3) * ((J260**2) - (J2120**2) + (J20 * J260) - (J20 * J2120))
@@ -143,14 +131,13 @@ def process_scale(
     angles = np.arctan2(Nr, Dr) / 2
 
     # Apply the first order derivative filters
-    print(f"{str(s)}: Applying first order filters")
+
     J0u = cv2.sepFilter2D(
         I, cv2.CV_64FC1, filters.G1.T, filters.G0_a.T, borderType=cv2.BORDER_REFLECT_101
     )
     J90u = cv2.sepFilter2D(
         I, cv2.CV_64FC1, filters.G0_a, filters.G1, borderType=cv2.BORDER_REFLECT_101
     )
-    print(f"{str(s)}: Applied first order filters")
 
     # Compute 0th, 1st, and 2nd derivatives along the estimated direction
     J0 = cv2.sepFilter2D(
@@ -214,7 +201,7 @@ def process_scale(
         dominant_scale_idx[idx] = s
         orient[idx] = angles[idx]
         psi = psi + psi_scale**2
-    print(f"{str(s)}: Completed")
+
     return (
         psi_prev,
         psi_curr,
@@ -302,7 +289,7 @@ def applyMMSI(I1, filters, togglePolarity=False, narrow_rivers=True):
             dominant_scale_idx,
             orient,
             psi,
-            idx_curr
+            idx_curr,
         )
 
     # Check if the coarsest scale has the maximum response
@@ -318,6 +305,7 @@ def applyMMSI(I1, filters, togglePolarity=False, narrow_rivers=True):
 
     # Estimate the width by fitting a quadratic spline to the response at the
     # dominant scale and its neighbors
+
     s_prev = filters.minScale * (np.sqrt(2) ** (dominant_scale_idx - 1))
     s_max = filters.minScale * (np.sqrt(2) ** (dominant_scale_idx))
     s_next = filters.minScale * (np.sqrt(2) ** (dominant_scale_idx + 1))
